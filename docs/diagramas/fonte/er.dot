@@ -1,0 +1,49 @@
+digraph ER {
+  graph [rankdir=TB, fontname="DejaVu Sans", fontsize=22, label=<Banco <b>Orientar</b> – Diagrama Entidade-Relacionamento<br/><font point-size="13">Relações lógicas pela chave do telefone (DDD + 8 últimos dígitos); não há FK física</font>>, labelloc=t, pad=0.5, nodesep=1.8, ranksep=1.2, bgcolor=white];
+  node [shape=plain, fontname="DejaVu Sans", fontsize=13];
+  edge [fontname="DejaVu Sans", fontsize=12, color="#5B6B7F", penwidth=1.5, arrowhead=crow, arrowtail=tee, dir=both];
+
+  contatos [label=<
+  <table border="1" cellborder="0" cellspacing="0" cellpadding="6" color="#2F5C9E" bgcolor="#FFFFFF">
+    <tr><td colspan="3" bgcolor="#2F5C9E"><font color="white"><b>contatos</b></font></td></tr>
+    <tr><td align="left"><b>PK</b></td><td align="left">id</td><td align="left">BIGINT AI</td></tr>
+    <tr><td></td><td align="left">nome</td><td align="left">VARCHAR(150)</td></tr>
+    <tr><td></td><td align="left">telefone</td><td align="left">VARCHAR(40)</td></tr>
+    <tr><td></td><td align="left">email</td><td align="left">VARCHAR(150)</td></tr>
+    <tr><td align="left"><b>UK</b></td><td align="left" port="k">chave_whats</td><td align="left">VARCHAR(12)</td></tr>
+    <tr><td></td><td align="left">tipo</td><td align="left">cliente | orgao | interno</td></tr>
+    <tr><td></td><td align="left">criado_em</td><td align="left">DATETIME</td></tr>
+  </table>>];
+
+  atendimentos [label=<
+  <table border="1" cellborder="0" cellspacing="0" cellpadding="6" color="#C46A00" bgcolor="#FFFFFF">
+    <tr><td colspan="3" bgcolor="#C46A00"><font color="white"><b>atendimentos</b></font></td></tr>
+    <tr><td align="left"><b>PK</b></td><td align="left">id</td><td align="left">BIGINT AI</td></tr>
+    <tr><td align="left"><b>IX</b></td><td align="left" port="k">chave</td><td align="left">VARCHAR(12)</td></tr>
+    <tr><td></td><td align="left">telefone</td><td align="left">VARCHAR(20)</td></tr>
+    <tr><td></td><td align="left">categoria</td><td align="left">ORCAMENTO | DOCUMENTOS |<br/>INFORMACOES | ENCERRAMENTO | SAUDACAO</td></tr>
+    <tr><td align="left"><b>IX</b></td><td align="left">status</td><td align="left">triagem | coletando |<br/>humano | encerrado</td></tr>
+    <tr><td></td><td align="left">resumo</td><td align="left">TEXT</td></tr>
+    <tr><td></td><td align="left">criado_em</td><td align="left">DATETIME</td></tr>
+    <tr><td align="left"><b>IX</b></td><td align="left">atualizado_em</td><td align="left">DATETIME (on update)</td></tr>
+  </table>>];
+
+  mensagens [label=<
+  <table border="1" cellborder="0" cellspacing="0" cellpadding="6" color="#2E7D4F" bgcolor="#FFFFFF">
+    <tr><td colspan="3" bgcolor="#2E7D4F"><font color="white"><b>mensagens</b></font></td></tr>
+    <tr><td align="left"><b>PK</b></td><td align="left">id</td><td align="left">BIGINT AI</td></tr>
+    <tr><td align="left"><b>UK</b></td><td align="left">wamid</td><td align="left">VARCHAR(128)</td></tr>
+    <tr><td align="left"><b>IX</b></td><td align="left" port="k">chave</td><td align="left">VARCHAR(12)</td></tr>
+    <tr><td></td><td align="left">telefone</td><td align="left">VARCHAR(20)</td></tr>
+    <tr><td></td><td align="left">direcao</td><td align="left">ENUM('in','out')</td></tr>
+    <tr><td></td><td align="left">tipo</td><td align="left">VARCHAR(20)</td></tr>
+    <tr><td></td><td align="left">texto</td><td align="left">TEXT</td></tr>
+    <tr><td align="left"><b>IX</b></td><td align="left">lote</td><td align="left">VARCHAR(40)</td></tr>
+    <tr><td></td><td align="left">criado_em</td><td align="left">DATETIME</td></tr>
+  </table>>];
+
+  contatos:s -> atendimentos:n [label="1 : N\npossui", arrowtail=teeodot];
+  contatos:s -> mensagens:n [label="1 : N\nenvia / recebe", arrowtail=teeodot];
+  atendimentos:e -> mensagens:w [label="1 : N\nagrupa\n(mesma chave)", style=dashed, arrowtail=none, arrowhead=crow];
+  {rank=same; atendimentos; mensagens}
+}

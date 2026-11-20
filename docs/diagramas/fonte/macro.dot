@@ -1,0 +1,26 @@
+digraph G {
+  graph [rankdir=TB, fontname="DejaVu Sans", fontsize=22, label="Orientar – Atendimento WhatsApp automatizado (visão macro)", labelloc=t, pad=0.5, nodesep=0.6, ranksep=0.7, bgcolor=white];
+  node  [fontname="DejaVu Sans", fontsize=14, shape=box, style="rounded,filled", fillcolor="#F2F5F9", color="#5B6B7F", penwidth=1.4, margin="0.25,0.15"];
+  edge  [fontname="DejaVu Sans", fontsize=12, color="#5B6B7F", penwidth=1.4];
+
+  cliente   [label="Cliente\n(WhatsApp)", shape=ellipse, fillcolor="#DFF3E4", color="#2E7D4F"];
+  meta      [label="Meta\nWhatsApp Cloud API"];
+  tunel     [label="Cloudflare Tunnel\n(/webhook/whatsapp)"];
+  n8n       [label="n8n\nOrientar_WP_Automacao_v2", fillcolor="#FFF1E0", color="#C46A00", penwidth=2];
+  mysql     [label="MySQL – banco Orientar\ncontatos · atendimentos · mensagens", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+  gemini    [label="Google Gemini\nclassificar + responder", fillcolor="#EEE8F8", color="#6B4FA0"];
+  resp      [label="Responsável\n(aviso + resumo)", shape=ellipse, fillcolor="#FDE7E7", color="#B23B3B"];
+  equipe    [label="Equipe Orientar\nretorna ao cliente pelo WhatsApp\n(proposta, documentos, status)", shape=ellipse, fillcolor="#FDE7E7", color="#B23B3B"];
+
+  cliente -> meta  [label="1. mensagem"];
+  meta -> tunel    [label="2. webhook POST"];
+  tunel -> n8n;
+  mysql -> n8n     [label="3. salva, junta rajada,\nlê cadastro/estado/histórico", dir=both];
+  n8n -> gemini    [label="4. categoria e resposta", dir=both];
+  n8n -> meta      [label="5. envia resposta", constraint=false];
+  {rank=same; mysql; n8n; gemini}
+  {rank=same; resp; equipe}
+  meta -> cliente  [label="6. resposta", constraint=false];
+  n8n -> resp      [label="7. dados completos /\ncliente já com a equipe"];
+  resp -> equipe   [label="8. assume o atendimento"];
+}

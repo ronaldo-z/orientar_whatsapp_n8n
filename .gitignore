@@ -1,0 +1,19 @@
+# Dados pessoais – nunca versionar (LGPD)
+*.vcf
+*.csv
+contatos*.sql
+!database/02_exemplo_contatos.sql
+conversas/
+*.zip
+
+# Credenciais e ambiente
+.env
+*.env
+credentials*.json
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+~$*.docx
+.vscode/
+.idea/

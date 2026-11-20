@@ -1,0 +1,60 @@
+digraph G {
+  graph [rankdir=TB, fontname="DejaVu Sans", fontsize=22, label="Fluxo n8n – Orientar_WP_Automacao_v2", labelloc=t, pad=0.4, nodesep=0.45, ranksep=0.42, bgcolor=white, newrank=true];
+  node  [fontname="DejaVu Sans", fontsize=12, shape=box, style="rounded,filled", fillcolor="#F2F5F9", color="#5B6B7F", penwidth=1.2, margin="0.18,0.08"];
+  edge  [fontname="DejaVu Sans", fontsize=11, color="#5B6B7F", penwidth=1.2];
+  node [width=2.6];
+
+  subgraph cluster0 { label="0. Verificação do webhook (GET)"; style="rounded,dashed"; color="#999999"; fontsize=14;
+    wv [label="Webhook_verificacao\nGET /whatsapp"]; tc [label="Token_confere\nverify_token confere?", shape=diamond, style=filled, fillcolor="#FFF7D6", width=3];
+    rc [label="Responder_challenge\ndevolve hub.challenge"]; r403 [label="Responder_403"];
+    wv -> tc; tc -> rc [label="sim"]; tc -> r403 [label="não"]; }
+
+  subgraph cluster1 { label="1. Recepção"; style="rounded,filled"; fillcolor="#F8FAFC"; color="#9AA9BA"; fontsize=14;
+    wp [label="Webhook_POST\nPOST /whatsapp"]; fm [label="Filtrar_mensagem\nsó mensagens (ignora status)"];
+    cf [label="Config\nnº responsável · espera 20 s"]; nz [label="Normalizar (Code)\ntexto/áudio/doc · chave DDD+8"];
+    smr [label="Salvar_msg_recebida\nINSERT IGNORE mensagens", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+    wp -> fm -> cf -> nz -> smr; }
+
+  subgraph cluster2 { label="2. Rajada e duplicidade"; style="rounded,filled"; fillcolor="#F8FAFC"; color="#9AA9BA"; fontsize=14;
+    ag [label="Aguardar_rajada\nWait 20 s"]; um [label="Ultima_msg\núltima msg do número", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+    su [label="Sou_a_ultima?", shape=diamond, style=filled, fillcolor="#FFF7D6"];
+    fim1 [label="fim\n(a execução mais nova\nresponde tudo junto)", shape=plaintext, style="", fontcolor="#777777"];
+    rl [label="Reservar_lote\nUPDATE lote = execution.id", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+    ll [label="Ler_lote", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+    jl [label="Juntar_lote (Code)\nvazio = duplicado → fim"];
+    ag -> um -> su; su -> fim1 [label="não"]; su -> rl [label="sim"]; rl -> ll -> jl; }
+
+  subgraph cluster3 { label="3. Contexto e rota"; style="rounded,filled"; fillcolor="#F8FAFC"; color="#9AA9BA"; fontsize=14;
+    cc [label="Carregar_cadastro\ncontato + atendimento aberto (24 h)", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+    hi [label="Historico\núltimas 20 msgs (7 dias)", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+    mc [label="Montar_contexto (Code)\ninterno → ignora"]; ro [label="Rota", shape=diamond, style=filled, fillcolor="#FFF7D6", width=1.6];
+    cc -> hi -> mc -> ro; }
+
+  subgraph cluster4 { label="4. Classificação (conversa nova)"; style="rounded,filled"; fillcolor="#F7F3FC"; color="#A795C7"; fontsize=14;
+    cl [label="Classificador + Gemini\nORCAMENTO · DOCUMENTOS · INFORMACOES\nENCERRAMENTO · SAUDACAO", fillcolor="#EEE8F8", color="#6B4FA0"];
+    nc [label="Normalizar_categoria (Code)"]; sc [label="Salvar_categoria\nINSERT/UPDATE atendimentos", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+    cl -> nc -> sc; }
+
+  subgraph cluster5 { label="5. Resposta ao cliente"; style="rounded,filled"; fillcolor="#FFF8EF"; color="#D9A35F"; fontsize=14;
+    pr [label="Preparar_resposta (Code)\nprompt conforme categoria"]; at [label="Atendente + Gemini\nJSON: resposta · concluido · resumo", fillcolor="#EEE8F8", color="#6B4FA0"];
+    ir [label="Interpretar_resposta (Code)\nremove tag · trata JSON inválido"];
+    er [label="Enviar_resposta\nWhatsApp → cliente", fillcolor="#DFF3E4", color="#2E7D4F"];
+    sme [label="Salvar_msg_enviada", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+    dc [label="Dados_completos?", shape=diamond, style=filled, fillcolor="#FFF7D6"];
+    fim2 [label="fim\n(aguarda próxima msg)", shape=plaintext, style="", fontcolor="#777777"];
+    pr -> at -> ir -> er -> sme -> dc; dc -> fim2 [label="não"]; }
+
+  subgraph cluster6 { label="6. Passa para a equipe"; style="rounded,filled"; fillcolor="#FDF3F3"; color="#D08B8B"; fontsize=14;
+    mh [label="Marcar_humano\nstatus = humano + resumo", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+    ar [label="Avisar_responsavel\nWhatsApp com resumo", fillcolor="#FDE7E7", color="#B23B3B"];
+    mh -> ar; }
+
+  subgraph cluster7 { label="7. Já com a equipe / órgão público"; style="rounded,filled"; fillcolor="#FDF3F3"; color="#D08B8B"; fontsize=14;
+    ra [label="Renovar_atendimento\natualizado_em = agora", shape=cylinder, fillcolor="#E6EEF9", color="#2F5C9E"];
+    rr [label="Repassar_ao_responsavel\nrobô não responde", fillcolor="#FDE7E7", color="#B23B3B"];
+    ra -> rr; }
+
+  smr -> ag; jl -> cc;
+  ro -> cl [label="classificar"]; ro -> pr [label="responder\n(coleta em andamento)"]; ro -> ra [label="humano"];
+  sc -> pr; dc -> mh [label="sim"];
+}

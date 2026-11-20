@@ -1,0 +1,1260 @@
+{
+  "name": "Orientar_WP_Automacao_v2",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 0. Verificação do webhook (Meta)\nTroque **COLOQUE_SEU_VERIFY_TOKEN** pelo mesmo token configurado no painel da Meta.",
+        "height": 330,
+        "width": 700,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2600,
+        -380
+      ],
+      "id": "b52b1022-efe5-48c2-b3a7-3d56d0a73d4b",
+      "name": "Nota 0"
+    },
+    {
+      "parameters": {
+        "path": "whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2560,
+        -220
+      ],
+      "id": "11279c9a-d04f-4e80-8fca-1b3f6b8275a5",
+      "name": "Webhook_verificacao",
+      "webhookId": "f56dab9e-f591-4cdd-af34-714f1a01e5ae"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6269ff21-8f65-485a-b593-674665252ed0",
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "COLOQUE_SEU_VERIFY_TOKEN",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2340,
+        -220
+      ],
+      "id": "f9e4347b-8b96-4cb2-8181-7bcab4092ed1",
+      "name": "Token_confere"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -2100,
+        -300
+      ],
+      "id": "cb2b2136-40c1-4820-874c-b118f24d7508",
+      "name": "Responder_challenge"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Forbidden",
+        "options": {
+          "responseCode": 403
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -2100,
+        -140
+      ],
+      "id": "fbdfc7df-c6c4-4d6f-90b8-a218099d0755",
+      "name": "Responder_403"
+    },
+    {
+      "parameters": {
+        "content": "## 1. Recepção\nFiltra só mensagens (ignora status de entrega/leitura), lê qualquer tipo (texto, áudio, documento, botão...) e padroniza o telefone.\n**Config**: número do responsável e tempo de espera.",
+        "height": 330,
+        "width": 1120,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2600,
+        0
+      ],
+      "id": "0a981965-4365-40ab-a188-e0e4b306ea94",
+      "name": "Nota 5"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2560,
+        160
+      ],
+      "id": "5f981607-78e8-482f-aa98-48a8cf35fe6b",
+      "name": "Webhook_POST",
+      "webhookId": "68829a54-6517-48b7-bb92-c807d332d804"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0cc88b6f-68d6-459a-b492-da9c06813c84",
+              "leftValue": "={{ $json.body.entry[0].changes[0].value.messages?.[0]?.type }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -2340,
+        160
+      ],
+      "id": "879e54c2-f5fd-47c8-8ba3-02e4eb20c36d",
+      "name": "Filtrar_mensagem"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a998d1c5-668b-4831-984e-ec6c4387f7ae",
+              "name": "numero_responsavel",
+              "value": "55DDDNUMERO",
+              "type": "string"
+            },
+            {
+              "id": "109aca4d-5216-4274-abac-382ecfbd2cc7",
+              "name": "espera_segundos",
+              "value": 20,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2120,
+        160
+      ],
+      "id": "42e87dcf-c041-4820-8e2b-b26896a19de9",
+      "name": "Config"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrai os dados da mensagem que chegou da Meta e padroniza o telefone.\nconst value = $input.first().json.body?.entry?.[0]?.changes?.[0]?.value || {};\nconst msg = value.messages?.[0];\nif (!msg) return [];\n\nconst legenda = (m) => (m?.caption ? ` Legenda: ${m.caption}` : '');\nlet texto = '';\nswitch (msg.type) {\n  case 'text':        texto = msg.text?.body || ''; break;\n  case 'button':      texto = msg.button?.text || ''; break;\n  case 'interactive': texto = msg.interactive?.button_reply?.title || msg.interactive?.list_reply?.title || ''; break;\n  case 'image':       texto = '[O cliente enviou uma imagem.]' + legenda(msg.image); break;\n  case 'document':    texto = `[O cliente enviou um documento: ${msg.document?.filename || 'arquivo'}.]` + legenda(msg.document); break;\n  case 'video':       texto = '[O cliente enviou um vídeo.]' + legenda(msg.video); break;\n  case 'audio':       texto = '[O cliente enviou um áudio.]'; break;\n  case 'sticker':     texto = '[O cliente enviou uma figurinha.]'; break;\n  case 'location':    texto = `[O cliente enviou uma localização: ${msg.location?.name || ''} ${msg.location?.address || ''} (${msg.location?.latitude}, ${msg.location?.longitude})]`; break;\n  case 'contacts':    texto = '[O cliente compartilhou um contato: ' + (msg.contacts || []).map(c => `${c.name?.formatted_name || ''} ${(c.phones || []).map(p => p.phone).join(' ')}`).join('; ') + ']'; break;\n  case 'reaction':    return [];   // reações (👍 etc.) não geram resposta\n  default:            texto = `[Mensagem do tipo ${msg.type}.]`;\n}\ntexto = String(texto).replace(/\\u0000/g, '').trim().slice(0, 4000);\nif (!texto) return [];\n\n// DDD + 8 últimos dígitos: bate com ou sem 55, 0, 9º dígito, espaços...\nfunction chave(tel) {\n  let d = String(tel || '').replace(/\\D/g, '').replace(/^0+/, '');\n  if (d.length >= 12 && d.startsWith('55')) d = d.slice(2).replace(/^0+/, '');\n  if (d.length < 10 || d.length > 11) return null;\n  return d.slice(0, 2) + d.slice(-8);\n}\nconst esc = (s) => String(s ?? '').replace(/\\\\/g, '\\\\\\\\').replace(/'/g, \"\\\\'\");\n\nconst telefone = String(msg.from).replace(/\\D/g, '');\nconst k = chave(telefone) || telefone.slice(-12);\n\nreturn [{\n  json: {\n    wamid: msg.id,\n    telefone,\n    chave: k,\n    tipo: msg.type,\n    texto,\n    nome_perfil: value.contacts?.[0]?.profile?.name || '',\n    sql_wamid: esc(msg.id),\n    sql_texto: esc(texto),\n    sql_tipo: esc(msg.type),\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1900,
+        160
+      ],
+      "id": "a25910a8-a8d9-4cae-8953-3f77c6ff2063",
+      "name": "Normalizar"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT IGNORE INTO mensagens (wamid, chave, telefone, direcao, tipo, texto)\nVALUES ('{{ $json.sql_wamid }}', '{{ $json.chave }}', '{{ $json.telefone }}', 'in', '{{ $json.sql_tipo }}', '{{ $json.sql_texto }}');",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        -1680,
+        160
+      ],
+      "id": "b6e0edc7-273b-48dd-b902-42b56c02ecad",
+      "name": "Salvar_msg_recebida",
+      "credentials": {
+        "mySql": {
+          "id": "CONFIGURAR",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 2. Junta mensagens em sequência e evita resposta duplicada\nEspera alguns segundos. Se chegou mensagem mais nova, esta execução para (a mais nova responde tudo junto). Se a Meta reenviar o mesmo webhook, só uma execução \"reserva\" as mensagens.",
+        "height": 330,
+        "width": 1360,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1420,
+        0
+      ],
+      "id": "1fa7e3aa-90e1-47b9-b391-5959615e8001",
+      "name": "Nota 11"
+    },
+    {
+      "parameters": {
+        "amount": "={{ $('Config').first().json.espera_segundos }}",
+        "unit": "seconds"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1380,
+        160
+      ],
+      "id": "ebb477bd-ef83-44c5-b98c-510d24798fba",
+      "name": "Aguardar_rajada",
+      "webhookId": "08aa9587-b77a-4e0a-b432-8ce3a2d061ef"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT wamid FROM mensagens\nWHERE chave = '{{ $('Normalizar').first().json.chave }}' AND direcao = 'in'\nORDER BY id DESC LIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        -1160,
+        160
+      ],
+      "id": "6e07fec2-910e-4c52-b27c-2c492176220a",
+      "name": "Ultima_msg",
+      "credentials": {
+        "mySql": {
+          "id": "CONFIGURAR",
+          "name": "MySQL account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c7f3bcbf-0b0d-4d52-ae7f-c22cdc2a254f",
+              "leftValue": "={{ $json.wamid }}",
+              "rightValue": "={{ $('Normalizar').first().json.wamid }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -940,
+        160
+      ],
+      "id": "2c652469-3640-4e45-8cc4-e8d9e248bb56",
+      "name": "Sou_a_ultima"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE mensagens SET lote = '{{ $execution.id }}'\nWHERE chave = '{{ $('Normalizar').first().json.chave }}' AND direcao = 'in' AND lote IS NULL;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        -720,
+        140
+      ],
+      "id": "74bb902d-525b-47ab-bf66-667d54f8dc35",
+      "name": "Reservar_lote",
+      "credentials": {
+        "mySql": {
+          "id": "CONFIGURAR",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT texto FROM mensagens\nWHERE lote = '{{ $execution.id }}'\nORDER BY id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        -500,
+        140
+      ],
+      "id": "d9e72f29-5851-4fa1-b47b-df0ef8f35251",
+      "name": "Ler_lote",
+      "credentials": {
+        "mySql": {
+          "id": "CONFIGURAR",
+          "name": "MySQL account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Junta as mensagens que o cliente mandou em sequência num texto só.\n// Se não veio nada, outra execução já cuidou (webhook duplicado): para aqui.\nconst textos = $input.all().map(i => i.json.texto).filter(t => t);\nif (!textos.length) return [];\nreturn [{ json: { mensagens_novas: textos.join('\\n'), qtd: textos.length } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        140
+      ],
+      "id": "47ed53b7-d6c9-4c5b-aa4b-6606c213a4be",
+      "name": "Juntar_lote"
+    },
+    {
+      "parameters": {
+        "content": "## 3. Cadastro + estado do atendimento + histórico\nRota: **humano** (já está com a equipe ou é órgão público), **responder** (coleta em andamento) ou **classificar** (conversa nova). Equipe interna é ignorada.",
+        "height": 330,
+        "width": 1150,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        0
+      ],
+      "id": "cbcaebaa-55a2-44d9-bf99-1146e81844f0",
+      "name": "Nota 18"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT\n  (SELECT nome FROM contatos WHERE chave_whats = '{{ $('Normalizar').first().json.chave }}' LIMIT 1) AS contato_nome,\n  (SELECT tipo FROM contatos WHERE chave_whats = '{{ $('Normalizar').first().json.chave }}' LIMIT 1) AS contato_tipo,\n  a.id AS atend_id, a.status, a.categoria\nFROM (SELECT 1) AS d\nLEFT JOIN atendimentos a ON a.id = (\n  SELECT id FROM atendimentos\n  WHERE chave = '{{ $('Normalizar').first().json.chave }}'\n    AND status IN ('triagem', 'coletando', 'humano')\n    AND atualizado_em > NOW() - INTERVAL 24 HOUR\n  ORDER BY id DESC LIMIT 1\n);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        20,
+        140
+      ],
+      "id": "6107929d-3a79-419e-80b7-db73bcad6340",
+      "name": "Carregar_cadastro",
+      "credentials": {
+        "mySql": {
+          "id": "CONFIGURAR",
+          "name": "MySQL account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT direcao, texto FROM mensagens\nWHERE chave = '{{ $('Normalizar').first().json.chave }}'\n  AND (lote IS NULL OR lote <> '{{ $execution.id }}')\n  AND criado_em > NOW() - INTERVAL 7 DAY\nORDER BY id DESC LIMIT 20;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        140
+      ],
+      "id": "8d625d80-e5e7-4b09-848f-a254c84515e0",
+      "name": "Historico",
+      "credentials": {
+        "mySql": {
+          "id": "CONFIGURAR",
+          "name": "MySQL account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Junta cadastro, estado do atendimento e histórico, e decide a rota.\nconst n = $('Normalizar').first().json;\nconst lote = $('Juntar_lote').first().json;\nconst cad = $('Carregar_cadastro').first().json || {};\n\nconst historico = $('Historico').all()\n  .map(i => i.json)\n  .filter(r => r && r.texto)\n  .reverse()\n  .map(r => (r.direcao === 'in' ? 'Cliente: ' : 'Orientar: ') + r.texto)\n  .join('\\n');\n\nconst tipoContato = cad.contato_tipo || (cad.contato_nome ? 'cliente' : 'novo');\nconst status = cad.status || '';\n\nlet rota = 'classificar';\nif (tipoContato === 'interno' || tipoContato === 'ignorar') return [];  // equipe: robô não responde\nif (tipoContato === 'orgao' || status === 'humano') rota = 'humano';\nelse if (status === 'coletando' && cad.categoria) rota = 'responder';\n\nreturn [{\n  json: {\n    rota,\n    telefone: n.telefone,\n    chave: n.chave,\n    nome_perfil: n.nome_perfil,\n    contato_nome: cad.contato_nome || '',\n    tipo_contato: tipoContato,\n    atend_id: cad.atend_id || null,\n    status,\n    categoria: cad.categoria || '',\n    historico: historico || '(sem mensagens anteriores)',\n    mensagens_novas: lote.mensagens_novas,\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        140
+      ],
+      "id": "3564be3b-ddbe-4fd8-b562-efdfecd8758c",
+      "name": "Montar_contexto"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2ded8045-afe9-4a34-84c4-d8c82156513e",
+                    "leftValue": "={{ $json.rota }}",
+                    "rightValue": "classificar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "classificar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "dd4af8a1-932f-416b-a2d3-da9ee0283fbc",
+                    "leftValue": "={{ $json.rota }}",
+                    "rightValue": "responder",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "responder"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f572dd42-a498-4948-9531-e0f9e1b3acea",
+                    "leftValue": "={{ $json.rota }}",
+                    "rightValue": "humano",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "humano"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        680,
+        140
+      ],
+      "id": "d3595637-fe11-4bbd-9762-e30a52162abb",
+      "name": "Rota"
+    },
+    {
+      "parameters": {
+        "content": "## 4. Classificação (só em conversa nova)\nUsa o histórico para não errar quando o cliente volta depois.",
+        "height": 330,
+        "width": 900,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        940,
+        -420
+      ],
+      "id": "41853cce-cd2c-4cdd-ae0b-feb03495ce52",
+      "name": "Nota 23"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Você classifica mensagens de WhatsApp da ORIENTAR, consultoria ambiental e de topografia.\nLeia o histórico e as mensagens novas e responda com APENAS UMA palavra:\n\nORCAMENTO = quer proposta, preço ou contratar um serviço (mesmo que ainda não tenha dado todos os detalhes).\nDOCUMENTOS = enviar, pedir ou conferir documento, nota fiscal, licença, mapa, ART, DWG, contrato, relatório.\nINFORMACOES = cliente com serviço em andamento querendo status, prazo, dúvida, agendar campo ou combinar algo.\nENCERRAMENTO = só agradecimento ou despedida, sem novo pedido.\nSAUDACAO = só cumprimento (\"oi\", \"bom dia\", \"tudo bem?\") ou ainda não dá para saber o que a pessoa quer.\n\nContato: {{ $('Montar_contexto').first().json.tipo_contato === 'cliente' ? 'cliente já cadastrado' : 'contato novo' }}\n\nHistórico recente:\n{{ $('Montar_contexto').first().json.historico }}\n\nMensagens novas:\n{{ $('Montar_contexto').first().json.mensagens_novas }}\n\nResponda só com a palavra, em maiúsculas, sem pontuação.",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        980,
+        -260
+      ],
+      "id": "692329ca-9bcb-4609-bcef-fd54140bb922",
+      "name": "Classificador"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        980,
+        -60
+      ],
+      "id": "51722eca-e5e7-4e7a-8408-cf67e3ec7588",
+      "name": "Gemini_classificador",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CONFIGURAR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Limpa a resposta do classificador (espaços, acentos, pontuação) e define o status.\nconst raw = String($input.first().json.text || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '');\nconst cats = ['ORCAMENTO', 'DOCUMENTOS', 'INFORMACOES', 'ENCERRAMENTO', 'SAUDACAO'];\nconst categoria = cats.find(c => raw.includes(c)) || 'SAUDACAO';\nconst status = categoria === 'ENCERRAMENTO' ? 'encerrado' : categoria === 'SAUDACAO' ? 'triagem' : 'coletando';\nconst ctx = $('Montar_contexto').first().json;\nreturn [{ json: { categoria, status, atend_id_sql: ctx.atend_id ? String(Number(ctx.atend_id)) : 'NULL' } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        -260
+      ],
+      "id": "53c9fe49-b98e-4db6-b624-8547ebaa082c",
+      "name": "Normalizar_categoria"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT INTO atendimentos (id, chave, telefone, categoria, status)\nVALUES ({{ $json.atend_id_sql }}, '{{ $('Normalizar').first().json.chave }}', '{{ $('Normalizar').first().json.telefone }}', '{{ $json.categoria }}', '{{ $json.status }}')\nON DUPLICATE KEY UPDATE categoria = VALUES(categoria), status = VALUES(status);",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        1420,
+        -260
+      ],
+      "id": "ad7026a5-18d8-46a1-9f43-adda636f07b0",
+      "name": "Salvar_categoria",
+      "credentials": {
+        "mySql": {
+          "id": "CONFIGURAR",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 5. Resposta ao cliente (um agente só, prompt muda pela categoria)\nA IA devolve JSON: resposta + concluido + resumo. A tag nunca chega ao cliente.",
+        "height": 330,
+        "width": 1360,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1660,
+        0
+      ],
+      "id": "e9e063b1-00f3-45b2-b45e-c2355e999b84",
+      "name": "Nota 28"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Monta o prompt da IA de acordo com a categoria do atendimento.\nconst ctx = $('Montar_contexto').first().json;\nlet categoria = ctx.categoria;\ntry {\n  const c = $('Normalizar_categoria').first()?.json?.categoria;  // existe só se passou pela classificação\n  if (c) categoria = c;\n} catch (e) { /* caminho sem classificação: usa a categoria salva */ }\ncategoria = categoria || 'SAUDACAO';\n\nconst nome = ctx.contato_nome || ctx.nome_perfil || '';\nconst jaCliente = ctx.tipo_contato === 'cliente';\n\nconst regras = `Você atende o WhatsApp da ORIENTAR Soluções em Cartografia e Meio Ambiente (consultoria ambiental e de topografia em Curitiba/PR).\nServiços comuns: licenciamento ambiental (LP, LI, LO), RAP, EIV, PGRCC/RGRCC, inventário florestal, autorização de corte (ARP), outorga, CAR e reserva legal, laudos, levantamento planialtimétrico/topográfico, georreferenciamento, drone/ortofoto, REURB.\n\nJEITO DE ESCREVER:\n- Português do Brasil, tom feminino, simpático, casual e direto, como uma boa atendente no WhatsApp.\n- Mensagens curtas (1 a 3 frases). Nada de listas longas, \"prezado(a)\", \"bem-vindo(a)\" ou linguagem engessada.\n- Faça no máximo UMA pergunta por mensagem.\n- Se o cliente cumprimentar, cumprimente de volta do mesmo jeito (\"Bom dia\", \"Oi\"...), só na primeira resposta da conversa.\n- Não repita perguntas que o histórico já responde.\n- Nunca invente preço, prazo, status de processo ou informação técnica. Diga que a equipe técnica vai confirmar.\n- Não diga por conta própria que é robô ou IA, mas se o cliente perguntar diretamente, seja honesta: diga que é a assistente virtual da Orientar e que a equipe humana continua o atendimento.\n- Se o cliente mandou áudio, peça com gentileza que escreva em texto (você não consegue ouvir áudio agora).\n- Se o cliente mandou documento/imagem, confirme que recebeu; você não consegue ver o conteúdo.\n- Telefone fixo da Orientar, caso o cliente prefira ligar: (41) 3246-7389.`;\n\nconst missoes = {\n  SAUDACAO: `MISSÃO: o cliente só cumprimentou ou ainda não disse o que precisa.\nResponda a saudação${nome ? ` chamando pelo primeiro nome (${nome}), se soar natural` : ''} e pergunte como pode ajudar.${jaCliente ? '\\nEle já é cliente cadastrado: pode perguntar se é sobre algum serviço em andamento ou algo novo.' : ''}\nNão colete dados ainda. \"concluido\" deve ser false.`,\n\n  ORCAMENTO: `MISSÃO: o cliente quer orçamento/proposta. Colete, UMA pergunta por vez, só o que ainda não estiver no histórico:\n1. Serviço: qual serviço, licença ou estudo precisa (e a área/metragem, se fizer sentido).\n2. Local: cidade e estado do imóvel/empreendimento.\n3. Prazo: se há urgência, prazo ou notificação de órgão ambiental.\n4. Para quem sai a proposta: nome da empresa/CNPJ ou nome da pessoa.\nSe o cliente já mandou tudo de uma vez (é comum), não pergunte de novo: confirme e encerre.\nQuando tiver os 4 itens, avise que a equipe vai analisar e enviar a proposta, e marque \"concluido\": true.`,\n\n  DOCUMENTOS: `MISSÃO: o cliente quer enviar, pedir ou tratar de documento, nota fiscal, licença, mapa, ART, DWG etc. Colete, UMA pergunta por vez, só o que faltar:\n1. Empresa ou pessoa (nome ou CNPJ/CPF).\n2. Qual documento e de qual obra/imóvel/projeto.\n3. Se ele está enviando algo para a Orientar ou pedindo que a Orientar envie.\nQuando souber isso, avise que o setor responsável já vai receber/enviar o arquivo, e marque \"concluido\": true.`,\n\n  INFORMACOES: `MISSÃO: o cliente já tem serviço com a Orientar e quer status, tirar dúvida ou combinar algo (campo, prazo, contrato). Colete, UMA pergunta por vez, só o que faltar:\n1. Empresa ou responsável.\n2. Qual projeto/obra/processo (nome, cidade ou número do protocolo).\n3. A dúvida ou informação específica.\nQuando souber isso, diga que vai verificar com a equipe técnica e que já retornam, e marque \"concluido\": true.`,\n\n  ENCERRAMENTO: `MISSÃO: o cliente está agradecendo ou se despedindo. Responda em 1 ou 2 frases curtas e calorosas, retribuindo o que ele disse (bom dia, boa semana...) e dizendo que a Orientar segue à disposição. Não faça perguntas. \"concluido\" deve ser false.`,\n};\n\nconst prompt = `${regras}\n\n${missoes[categoria] || missoes.SAUDACAO}\n\nDADOS DO CONTATO:\n- Nome no cadastro: ${ctx.contato_nome || '(não cadastrado)'}\n- Nome no WhatsApp: ${ctx.nome_perfil || '(desconhecido)'}\n- Situação: ${jaCliente ? 'cliente já cadastrado' : 'contato novo'}\n\nHISTÓRICO RECENTE (mais antigo primeiro):\n${ctx.historico}\n\nMENSAGEM(NS) NOVA(S) DO CLIENTE:\n${ctx.mensagens_novas}\n\nFORMATO DA RESPOSTA: devolva SOMENTE um JSON válido, sem crases e sem texto fora dele:\n{\"resposta\": \"texto que será enviado ao cliente\", \"concluido\": true ou false, \"resumo\": \"quando concluido for true: resumo objetivo para a equipe com tudo que foi coletado (serviço, local, prazo, empresa, documento, projeto...). Senão, string vazia.\"}`;\n\nreturn [{ json: { categoria, prompt } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1700,
+        140
+      ],
+      "id": "bd926a5e-d05a-4d88-983c-967904b49d9c",
+      "name": "Preparar_resposta"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1920,
+        140
+      ],
+      "id": "026bb310-ca46-4852-b921-987bcaae6c22",
+      "name": "Atendente"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        340
+      ],
+      "id": "03f38e98-5eb0-4f4f-b1ff-b8d995f1ae00",
+      "name": "Gemini_atendente",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "CONFIGURAR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lê o JSON devolvido pela IA. Se vier fora do formato, aproveita o texto mesmo.\nconst p = $('Preparar_resposta').first().json;\nconst raw = String($input.first().json.text || '');\nlet out;\ntry {\n  const m = raw.match(/\\{[\\s\\S]*\\}/);\n  out = JSON.parse(m ? m[0] : raw);\n} catch (e) {\n  out = { resposta: raw, concluido: raw.includes('[DADOS_COLETADOS]'), resumo: '' };\n}\nlet resposta = String(out.resposta || '').replace(/\\[DADOS_COLETADOS\\]/g, '').trim();\nif (!resposta) resposta = 'Recebi sua mensagem! Vou verificar e já te retorno.';\n\nconst coleta = ['ORCAMENTO', 'DOCUMENTOS', 'INFORMACOES'].includes(p.categoria);\nconst concluido = coleta && (out.concluido === true || String(out.concluido).toLowerCase() === 'true');\nconst resumo = String(out.resumo || '').trim() || '(a IA não gerou resumo — veja a conversa)';\nconst esc = (s) => String(s ?? '').replace(/\\\\/g, '\\\\\\\\').replace(/'/g, \"\\\\'\");\n\nreturn [{ json: { resposta, concluido, resumo, categoria: p.categoria, sql_resposta: esc(resposta), sql_resumo: esc(resumo) } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2140,
+        140
+      ],
+      "id": "fb314ac8-535d-4f4f-b03e-6634df979cfb",
+      "name": "Interpretar_resposta"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "SEU_PHONE_NUMBER_ID",
+        "recipientPhoneNumber": "={{ $('Normalizar').first().json.telefone }}",
+        "textBody": "={{ $json.resposta }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        2360,
+        140
+      ],
+      "id": "cb5664f1-2924-44f3-9c6d-e72014d8a639",
+      "name": "Enviar_resposta",
+      "webhookId": "8def08b9-84cb-430b-97f7-a63cfe74b3a8",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "CONFIGURAR",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT INTO mensagens (chave, telefone, direcao, tipo, texto)\nVALUES ('{{ $('Normalizar').first().json.chave }}', '{{ $('Normalizar').first().json.telefone }}', 'out', 'text', '{{ $('Interpretar_resposta').first().json.sql_resposta }}');",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        2580,
+        140
+      ],
+      "id": "9d7828b5-1e4c-4f9b-9a4e-849047091efa",
+      "name": "Salvar_msg_enviada",
+      "credentials": {
+        "mySql": {
+          "id": "CONFIGURAR",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "03c4519e-0dad-437c-85d1-756945827a3d",
+              "leftValue": "={{ $('Interpretar_resposta').first().json.concluido }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2800,
+        140
+      ],
+      "id": "0fc95b78-8a64-4ee1-8aed-c1f7a3339824",
+      "name": "Dados_completos"
+    },
+    {
+      "parameters": {
+        "content": "## 6. Passa para a equipe\nMarca o atendimento como **humano** (o robô fica quieto por 24h nesse número) e avisa o responsável com o resumo.",
+        "height": 330,
+        "width": 700,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3060,
+        0
+      ],
+      "id": "9e332fa5-69d5-44a2-8b8c-00b69e113549",
+      "name": "Nota 36"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE atendimentos\nSET status = 'humano', resumo = '{{ $('Interpretar_resposta').first().json.sql_resumo }}'\nWHERE chave = '{{ $('Normalizar').first().json.chave }}' AND status = 'coletando'\nORDER BY id DESC LIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        3100,
+        120
+      ],
+      "id": "18a90725-7d68-4ca6-951d-9d2b8670f0fc",
+      "name": "Marcar_humano",
+      "credentials": {
+        "mySql": {
+          "id": "CONFIGURAR",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "SEU_PHONE_NUMBER_ID",
+        "recipientPhoneNumber": "={{ $('Config').first().json.numero_responsavel }}",
+        "textBody": "=🚨 Atendimento pronto para a equipe\nCategoria: {{ $('Interpretar_resposta').first().json.categoria }}\nCliente: {{ $('Montar_contexto').first().json.contato_nome || $('Montar_contexto').first().json.nome_perfil || 'sem nome' }} ({{ $('Montar_contexto').first().json.tipo_contato === 'cliente' ? 'cadastrado' : 'novo' }})\nTelefone: +{{ $('Normalizar').first().json.telefone }}\n\nResumo:\n{{ $('Interpretar_resposta').first().json.resumo }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        3320,
+        120
+      ],
+      "id": "227a282b-8f12-48da-a55c-d0f0595f7ca0",
+      "name": "Avisar_responsavel",
+      "webhookId": "20c01abf-8ce0-4996-b51f-ab9c7da3ba7d",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "CONFIGURAR",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 7. Cliente já está com a equipe (ou é órgão público)\nO robô não responde: só repassa a mensagem ao responsável.",
+        "height": 330,
+        "width": 900,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        940,
+        420
+      ],
+      "id": "5dfd90b3-683d-44e3-b86a-dfe637a819cf",
+      "name": "Nota 39"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE atendimentos SET atualizado_em = NOW()\nWHERE id = {{ $('Montar_contexto').first().json.atend_id ? Number($('Montar_contexto').first().json.atend_id) : 0 }};",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        980,
+        580
+      ],
+      "id": "e87d4e9f-a41c-44fa-a49c-f4f38e42612f",
+      "name": "Renovar_atendimento",
+      "credentials": {
+        "mySql": {
+          "id": "CONFIGURAR",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "SEU_PHONE_NUMBER_ID",
+        "recipientPhoneNumber": "={{ $('Config').first().json.numero_responsavel }}",
+        "textBody": "=💬 Mensagem de {{ $('Montar_contexto').first().json.contato_nome || $('Montar_contexto').first().json.nome_perfil || 'contato' }} (+{{ $('Normalizar').first().json.telefone }}){{ $('Montar_contexto').first().json.tipo_contato === 'orgao' ? ' [órgão público]' : '' }}:\n\n{{ $('Montar_contexto').first().json.mensagens_novas }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        580
+      ],
+      "id": "6f2b0cea-a3c6-4e14-b87e-90a3708f40ec",
+      "name": "Repassar_ao_responsavel",
+      "webhookId": "6d77827f-4ef6-4a37-909e-b3ed9f2c3bcb",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "CONFIGURAR",
+          "name": "WhatsApp account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook_verificacao": {
+      "main": [
+        [
+          {
+            "node": "Token_confere",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Token_confere": {
+      "main": [
+        [
+          {
+            "node": "Responder_challenge",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder_403",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook_POST": {
+      "main": [
+        [
+          {
+            "node": "Filtrar_mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar_mensagem": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar": {
+      "main": [
+        [
+          {
+            "node": "Salvar_msg_recebida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar_msg_recebida": {
+      "main": [
+        [
+          {
+            "node": "Aguardar_rajada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aguardar_rajada": {
+      "main": [
+        [
+          {
+            "node": "Ultima_msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ultima_msg": {
+      "main": [
+        [
+          {
+            "node": "Sou_a_ultima",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reservar_lote": {
+      "main": [
+        [
+          {
+            "node": "Ler_lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ler_lote": {
+      "main": [
+        [
+          {
+            "node": "Juntar_lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sou_a_ultima": {
+      "main": [
+        [
+          {
+            "node": "Reservar_lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Juntar_lote": {
+      "main": [
+        [
+          {
+            "node": "Carregar_cadastro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Carregar_cadastro": {
+      "main": [
+        [
+          {
+            "node": "Historico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Historico": {
+      "main": [
+        [
+          {
+            "node": "Montar_contexto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar_contexto": {
+      "main": [
+        [
+          {
+            "node": "Rota",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rota": {
+      "main": [
+        [
+          {
+            "node": "Classificador",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar_resposta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Renovar_atendimento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini_classificador": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Classificador",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classificador": {
+      "main": [
+        [
+          {
+            "node": "Normalizar_categoria",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar_categoria": {
+      "main": [
+        [
+          {
+            "node": "Salvar_categoria",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar_categoria": {
+      "main": [
+        [
+          {
+            "node": "Preparar_resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini_atendente": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Atendente",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar_resposta": {
+      "main": [
+        [
+          {
+            "node": "Atendente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atendente": {
+      "main": [
+        [
+          {
+            "node": "Interpretar_resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpretar_resposta": {
+      "main": [
+        [
+          {
+            "node": "Enviar_resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar_resposta": {
+      "main": [
+        [
+          {
+            "node": "Salvar_msg_enviada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar_msg_enviada": {
+      "main": [
+        [
+          {
+            "node": "Dados_completos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dados_completos": {
+      "main": [
+        [
+          {
+            "node": "Marcar_humano",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar_humano": {
+      "main": [
+        [
+          {
+            "node": "Avisar_responsavel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Renovar_atendimento": {
+      "main": [
+        [
+          {
+            "node": "Repassar_ao_responsavel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
